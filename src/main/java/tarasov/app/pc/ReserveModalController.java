@@ -29,6 +29,8 @@ public class ReserveModalController {
     private TableColumn<ReservedTime, String> userColumn; // Колонка для пользователя
     @FXML
     private TableColumn<ReservedTime, String> endTimeColumn; // Колонка для времени окончания
+    @FXML
+    private TableColumn<ReservedTime, String> pcColumn; // Колонка для времени окончания
 
     private Computer selectedComputer;
     private int userId;
@@ -74,6 +76,7 @@ public class ReserveModalController {
         timeColumn.setCellValueFactory(cellData -> cellData.getValue().timeProperty());
         endTimeColumn.setCellValueFactory(cellData -> cellData.getValue().endTimeProperty()); // Привязка для времени окончания
         userColumn.setCellValueFactory(cellData -> cellData.getValue().userProperty());
+        pcColumn.setCellValueFactory(cellData -> cellData.getValue().pcIdProperty());
 
         // Загружаем занятые времена
         loadReservedTimes();
@@ -115,7 +118,7 @@ public class ReserveModalController {
     private void loadReservedTimes() {
         ObservableList<ReservedTime> reservedTimes = FXCollections.observableArrayList();
 
-        String query = "SELECT reservation_time, end_time, user_id FROM Reservations WHERE computer_id = ? AND reservation_time LIKE ?";
+        String query = "SELECT reservation_time, end_time, user_id, computer_id FROM Reservations WHERE computer_id = ? AND reservation_time LIKE ?";
 
         LocalDate selectedDate = reservationDatePicker.getValue();
 
@@ -142,8 +145,10 @@ public class ReserveModalController {
 
                     int userId = resultSet.getInt("user_id");
 
+                    int pc_id = resultSet.getInt("computer_id");
+
                     // Добавляем преобразованные данные в список
-                    reservedTimes.add(new ReservedTime(reservedTime, endTime, String.valueOf(userId)));
+                    reservedTimes.add(new ReservedTime(reservedTime, endTime, String.valueOf(userId), String.valueOf(pc_id)));
                 }
 
                 reservedTimesTable.setItems(reservedTimes);
