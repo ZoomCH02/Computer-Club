@@ -5,13 +5,14 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField; // Импортируем TextField для поиска
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,6 +38,13 @@ public class MainPageController {
     private TableColumn<Game, String> genreColumn;
 
     @FXML
+    private Label status;
+    @FXML
+    private Label start_session;
+    @FXML
+    private Label end_session;
+
+    @FXML
     private ComboBox<String> genreFilterComboBox;
 
     @FXML
@@ -52,6 +60,9 @@ public class MainPageController {
     public void setUserId(int userId, String userRole) {
         this.user_id = userId;
         this.user_role = userRole;
+
+        // Загружаем информацию о сессии пользователя
+        loadSessionInfo();
     }
 
     @FXML
@@ -109,6 +120,43 @@ public class MainPageController {
         } catch (Exception e) {
             System.err.println("Ошибка при открытии модального окна: " + e.getMessage());
             AlertManager.showErrorAlert("Ошибка", "Ошибка при открытии модального окна: " + e.getMessage());
+        }
+    }
+
+    private void loadSessionInfo() {
+        String query = "SELECT start_time, end_time FROM orders WHERE user_id = ? AND NOW() BETWEEN start_time AND end_time";
+
+        try (Connection conn = databaseConnection.connect(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, user_id); // Устанавливаем ID пользователя
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Если сессия найдена
+                    String startTime = rs.getString("start_time");
+                    String endTime = rs.getString("end_time");
+
+                    // Преобразуем строки в объект Timestamp
+                    Timestamp startTimestamp = Timestamp.valueOf(startTime);
+                    Timestamp endTimestamp = Timestamp.valueOf(endTime);
+
+                    // Форматируем время в нужный формат
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy, HH:mm");
+                    String formattedStartTime = sdf.format(new Date(startTimestamp.getTime()));
+                    String formattedEndTime = sdf.format(new Date(endTimestamp.getTime()));
+
+                    // Обновляем статус и лейблы
+                    status.setText("Статус: Активно");
+                    start_session.setText("Начало сессии: " + formattedStartTime);
+                    end_session.setText("Конец сессии: " + formattedEndTime);
+                } else {
+                    // Если сессия не найдена
+                    status.setText("Статус: Неактивно");
+                    start_session.setText("Начало сессии: -");
+                    end_session.setText("Конец сессии: -");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при загрузке данных о сессии: " + e.getMessage());
         }
     }
 

@@ -29,17 +29,17 @@
             <TableColumn fx:id="genreColumn" prefWidth="250.0" text="Жанр" />
         </columns>
     </TableView>
-   <Label layoutX="976.0" layoutY="50.0" prefHeight="32.0" prefWidth="236.0" text="Статус:" textFill="WHITE">
+   <Label fx:id="status" layoutX="573.0" layoutY="50.0" prefHeight="32.0" prefWidth="236.0" text="Статус:" textFill="WHITE">
       <font>
          <Font name="System Bold" size="22.0" />
       </font>
    </Label>
-   <Label layoutX="976.0" layoutY="90.0" prefHeight="32.0" prefWidth="236.0" text="Начало сессии: " textFill="WHITE">
+   <Label fx:id="start_session" layoutX="573.0" layoutY="90.0" prefHeight="32.0" prefWidth="390.0" text="Начало сессии: " textFill="WHITE">
       <font>
          <Font name="System Bold" size="16.0" />
       </font>
    </Label>
-   <Label layoutX="976.0" layoutY="122.0" prefHeight="32.0" prefWidth="236.0" text="Конец сессии: " textFill="WHITE">
+   <Label fx:id="end_session" layoutX="573.0" layoutY="122.0" prefHeight="32.0" prefWidth="390.0" text="Конец сессии: " textFill="WHITE">
       <font>
          <Font name="System Bold" size="16.0" />
       </font>
