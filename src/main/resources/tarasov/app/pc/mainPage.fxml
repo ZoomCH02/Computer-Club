@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="900.0" prefWidth="1250.0" styleClass="root" stylesheets="@css/mainPage.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tarasov.app.pc.MainPageController">
+
+    <!-- Таблица компьютеров -->
+    <TableView fx:id="computersTable" layoutX="50.0" layoutY="50.0" prefHeight="400.0" prefWidth="508.0">
+        <columns>
+            <TableColumn fx:id="computerNameColumn" maxWidth="150.0" minWidth="150.0" prefWidth="150.0" text="Компьютер" />
+            <TableColumn fx:id="specificationsColumn" prefWidth="350.0" text="Характеристики" />
+        </columns>
+    </TableView>
+
+    <ComboBox fx:id="genreFilterComboBox" layoutX="976.0" layoutY="513.0" prefHeight="36.0" prefWidth="236.0" promptText="Выберите жанр" />
+    <TextField fx:id="searchTextField" layoutX="976.0" layoutY="468.0" prefHeight="36.0" prefWidth="236.0" promptText="Введите название игры..." />
+
+    <!-- Таблица игр -->
+    <TableView fx:id="gamesTable" layoutX="50.0" layoutY="468.0" prefHeight="400.0" prefWidth="903.0">
+        <columns>
+            <TableColumn fx:id="gameNameColumn" prefWidth="300.0" text="Игра" />
+            <TableColumn fx:id="descriptionColumn" maxWidth="400.0" minWidth="400.0" prefWidth="400.0" text="Описание" />
+            <TableColumn fx:id="genreColumn" prefWidth="250.0" text="Жанр" />
+        </columns>
+    </TableView>
+   <Label layoutX="976.0" layoutY="50.0" prefHeight="32.0" prefWidth="236.0" text="Статус:" textFill="WHITE">
+      <font>
+         <Font name="System Bold" size="22.0" />
+      </font>
+   </Label>
+   <Label layoutX="976.0" layoutY="90.0" prefHeight="32.0" prefWidth="236.0" text="Начало сессии: " textFill="WHITE">
+      <font>
+         <Font name="System Bold" size="16.0" />
+      </font>
+   </Label>
+   <Label layoutX="976.0" layoutY="122.0" prefHeight="32.0" prefWidth="236.0" text="Конец сессии: " textFill="WHITE">
+      <font>
+         <Font name="System Bold" size="16.0" />
+      </font>
+   </Label>
+
+</AnchorPane>

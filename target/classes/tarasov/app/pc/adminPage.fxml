@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="900.0" prefWidth="1250.0" stylesheets="@css/mainPage.css" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/22" fx:controller="tarasov.app.pc.AdminPageController">
+    <TabPane layoutX="117.0" layoutY="68.0" prefHeight="765.0" prefWidth="1017.0">
+        <!-- Таблица для отображения игр -->
+        <Tab text="Games" closable="false">
+            <TableView fx:id="gamesTable">
+                <columns>
+                    <TableColumn fx:id="gameIdColumn" text="ID"/>
+                    <TableColumn fx:id="gameNameColumn" text="Название"/>
+                    <TableColumn fx:id="gameDescriptionColumn" text="Описание"/>
+                    <TableColumn fx:id="gameGenreColumn" text="Жанр"/>
+                </columns>
+            </TableView>
+        </Tab>
+
+        <!-- Таблица для отображения броней -->
+        <Tab text="Reservations" closable="false">
+            <TableView fx:id="reservationsTable">
+                <columns>
+                    <TableColumn fx:id="reservationIdColumn" text="Reservation ID"/>
+                    <TableColumn fx:id="userIdColumn" text="User ID"/>
+                    <TableColumn fx:id="computerIdColumn" text="Computer ID"/>
+                    <TableColumn fx:id="reservationTimeColumn" text="Reservation Time"/>
+                    <TableColumn fx:id="endTimeColumn" text="End Time"/>
+                </columns>
+            </TableView>
+        </Tab>
+
+        <!-- Таблица для отображения заказов -->
+        <Tab text="Orders" closable="false">
+            <TableView fx:id="ordersTable">
+                <columns>
+                    <TableColumn fx:id="orderIdColumn" text="Order ID"/>
+                    <TableColumn fx:id="orderUserIdColumn" text="User ID"/>
+                    <TableColumn fx:id="orderComputerIdColumn" text="Computer ID"/>
+                    <TableColumn fx:id="orderStartTimeColumn" text="Start Time"/>
+                    <TableColumn fx:id="orderEndTimeColumn" text="End Time"/>
+                    <TableColumn fx:id="totalCostColumn" text="Total Cost"/>
+                </columns>
+            </TableView>
+        </Tab>
+    </TabPane>
+</AnchorPane>

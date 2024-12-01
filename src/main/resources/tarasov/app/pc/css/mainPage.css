@@ -1,0 +1,21 @@
+.root {
+    -fx-background-color: rgb(42, 0, 58);
+}
+
+.scroll-pane {
+    -fx-background: #ffffff;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background: transparent;
+}
+
+.logregBack {
+    -fx-background-color: rgb(42, 0, 58);
+}
+
+.but {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: black;
+}
