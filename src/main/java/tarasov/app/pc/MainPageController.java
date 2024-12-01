@@ -2,8 +2,10 @@ package tarasov.app.pc;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -230,5 +232,13 @@ public class MainPageController {
         }
 
         gamesTable.setItems(filteredGames); // Обновляем таблицу с отфильтрованными играми
+    }
+
+    public void logout(ActionEvent actionEvent) {
+        // Получаем текущий Stage из компонента интерфейса
+        Stage currentStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+
+        // Вызываем метод Logout для выхода
+        Logout.performLogout(currentStage);
     }
 }

@@ -10,7 +10,7 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="900.0" prefWidth="1250.0" stylesheets="@css/mainPage.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tarasov.app.pc.AdminPageController">
-    <TabPane layoutX="65.0" layoutY="41.0" prefHeight="754.0" prefWidth="1120.0">
+    <TabPane layoutX="65.0" layoutY="41.0" prefHeight="693.0" prefWidth="1120.0">
         <!-- Таблица для отображения игр -->
         <Tab closable="false" text="Игры">
             <VBox>
@@ -55,4 +55,9 @@
             </TableView>
         </Tab>
     </TabPane>
+   <Button layoutX="550.0" layoutY="753.0" mnemonicParsing="false" onAction="#logout" prefHeight="50.0" prefWidth="151.0" text="Выйти">
+      <font>
+         <Font name="System Bold" size="20.0" />
+      </font>
+   </Button>
 </AnchorPane>

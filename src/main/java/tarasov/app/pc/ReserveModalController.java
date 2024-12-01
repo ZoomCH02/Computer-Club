@@ -12,9 +12,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class ReserveModalController {
 
+    /*============ПОЛЯ И ГРАФИЧЕСКИЕ КОМПОНЕНТЫ===========*/
     @FXML
     private ComboBox<String> startTimeComboBox; // ComboBox для выбора времени начала
     @FXML
@@ -22,7 +24,7 @@ public class ReserveModalController {
     @FXML
     private DatePicker reservationDatePicker; // Поле для выбора даты
     @FXML
-    private TableView<ReservedTime> reservedTimesTable; // Таблица с занятыми временем
+    private TableView<ReservedTime> reservedTimesTable; // Таблица с занятыми временами
     @FXML
     private TableColumn<ReservedTime, String> timeColumn; // Колонка для времени
     @FXML
@@ -30,127 +32,110 @@ public class ReserveModalController {
     @FXML
     private TableColumn<ReservedTime, String> endTimeColumn; // Колонка для времени окончания
     @FXML
-    private TableColumn<ReservedTime, String> pcColumn; // Колонка для времени окончания
+    private TableColumn<ReservedTime, String> pcColumn; // Колонка для компьютера
 
     private Computer selectedComputer;
     private int userId;
-
     private final DatabaseConnection databaseConnection = new DatabaseConnection();
 
+    /*============НАСТРОЙКА КОМПЬЮТЕРА И ИНИЦИАЛИЗАЦИЯ===========*/
     public void setSelectedComputer(Computer computer, int userId) {
         this.selectedComputer = computer;
         this.userId = userId;
 
-        ObservableList<String> times = FXCollections.observableArrayList();
-
-        LocalTime currentTime = LocalTime.now(); // Текущее время
-        int currentHour = currentTime.getHour(); // Текущий час
-
-        // Добавляем время, начиная с текущего часа
-        for (int i = currentHour; i < 24; i++) {
-            String time = String.format("%02d:00", i); // Форматируем время как 00:00, 01:00 и т.д.
-            times.add(time);
-        }
-
-        startTimeComboBox.setItems(times);
-        startTimeComboBox.setValue(times.get(0)); // Первое доступное время
-
-        // Устанавливаем значения для endTimeComboBox в зависимости от startTimeComboBox
-        updateEndTimeComboBox(times.get(0));
-
-        startTimeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateEndTimeComboBox(newValue); // Обновление времени окончания при изменении времени начала
-        });
-
-        // Устанавливаем минимальную дату для DatePicker (невозможно выбрать вчерашний день)
+        // Устанавливаем ограничения на выбор даты
         reservationDatePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                // Устанавливаем минимальную дату (не разрешаем выбирать вчерашний день)
                 setDisable(empty || date.isBefore(LocalDate.now()));
             }
         });
 
-        // Инициализация таблицы с занятыми временем
+        // Слушатель изменений даты
+        reservationDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                if (newValue.equals(LocalDate.now())) {
+                    fillTimeComboBoxes(LocalTime.now().getHour(), 23); // Сегодняшняя дата
+                } else {
+                    fillTimeComboBoxes(0, 23); // Любая другая дата
+                }
+                loadReservedTimes();
+            }
+        });
+
+        // Настройка колонок таблицы
         timeColumn.setCellValueFactory(cellData -> cellData.getValue().timeProperty());
-        endTimeColumn.setCellValueFactory(cellData -> cellData.getValue().endTimeProperty()); // Привязка для времени окончания
+        endTimeColumn.setCellValueFactory(cellData -> cellData.getValue().endTimeProperty());
         userColumn.setCellValueFactory(cellData -> cellData.getValue().userProperty());
         pcColumn.setCellValueFactory(cellData -> cellData.getValue().pcIdProperty());
 
-        // Загружаем занятые времена
-        loadReservedTimes();
+        loadReservedTimes(); // Загрузка данных в таблицу
+    }
 
-        // Слушатель изменения даты в DatePicker
-        reservationDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                loadReservedTimes(); // Загружаем занятые времена для новой даты
-            }
+    /*============ИНИЦИАЛИЗАЦИЯ КОМПОНЕНТОВ===========*/
+    @FXML
+    public void initialize() {
+        // Метод оставлен пустым для возможности добавления действий при инициализации
+    }
+
+    /*============НАПОЛНЕНИЕ ВРЕМЕННЫХ COMBOBOX===========*/
+    private void fillTimeComboBoxes(int startHour, int endHour) {
+        ObservableList<String> times = FXCollections.observableArrayList();
+
+        for (int i = startHour; i <= endHour; i++) {
+            String time = String.format("%02d:00", i);
+            times.add(time);
+        }
+
+        startTimeComboBox.setItems(times);
+        startTimeComboBox.setValue(times.get(0));
+        updateEndTimeComboBox(times.get(0));
+
+        startTimeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            updateEndTimeComboBox(newValue);
         });
     }
 
-    // Инициализация ComboBox с предустановленными значениями времени и таблицы
-    @FXML
-    public void initialize() {
-
-    }
-
-
-    // Обновление значений для endTimeComboBox в зависимости от времени начала
     private void updateEndTimeComboBox(String startTimeText) {
         ObservableList<String> timesForEnd = FXCollections.observableArrayList();
-
-        // Получаем выбранное время начала
         LocalTime startTime = LocalTime.parse(startTimeText, DateTimeFormatter.ofPattern("HH:mm"));
-        // Добавляем возможные значения для окончания, начиная с 1 часа позже выбранного времени начала
+
         for (int i = startTime.getHour() + 1; i < 24; i++) {
-            String time = String.format("%02d:00", i);
-            timesForEnd.add(time);
+            timesForEnd.add(String.format("%02d:00", i));
         }
 
         endTimeComboBox.setItems(timesForEnd);
         if (!timesForEnd.isEmpty()) {
-            endTimeComboBox.setValue(timesForEnd.get(0)); // Значение по умолчанию - первое доступное время
+            endTimeComboBox.setValue(timesForEnd.get(0));
         }
     }
 
-    // Загрузка занятых времен для выбранного компьютера и даты
+    /*============ЗАГРУЗКА ЗАНЯТЫХ ВРЕМЕН ИЗ БД===========*/
     private void loadReservedTimes() {
         ObservableList<ReservedTime> reservedTimes = FXCollections.observableArrayList();
 
-        String query = "SELECT reservation_time, end_time, user_id, computer_id FROM Reservations WHERE computer_id = ? AND reservation_time LIKE ?";
+        // Запрос для загрузки данных из Reservations
+        String reservationsQuery =
+                "SELECT reservation_time, end_time, user_id, computer_id FROM Reservations " +
+                        "WHERE computer_id = ? AND reservation_time LIKE ?";
+
+        // Запрос для загрузки данных из Orders
+        String ordersQuery =
+                "SELECT start_time, end_time, user_id, computer_id FROM Orders " +
+                        "WHERE computer_id = ? AND start_time LIKE ?";
 
         LocalDate selectedDate = reservationDatePicker.getValue();
 
         if (selectedDate != null) {
-            try (Connection conn = databaseConnection.connect();
-                 PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (Connection conn = databaseConnection.connect()) {
+                // Загрузка данных из таблицы Reservations
+                loadDataFromTable(conn, reservationsQuery, selectedDate, reservedTimes, "reserv");
 
-                stmt.setInt(1, selectedComputer.getId());
+                // Загрузка данных из таблицы Orders
+                loadDataFromTable(conn, ordersQuery, selectedDate, reservedTimes, "order");
 
-                // Передаем дату в параметр запроса
-                stmt.setString(2, selectedDate + "%");
-
-                ResultSet resultSet = stmt.executeQuery();
-                while (resultSet.next()) {
-                    // Получаем дату и время как Timestamp для начала и окончания
-                    java.sql.Timestamp reservedTimeTimestamp = resultSet.getTimestamp("reservation_time");
-                    java.sql.Timestamp endTimeTimestamp = resultSet.getTimestamp("end_time");
-
-                    // Преобразуем Timestamp в LocalDateTime и форматируем в нужный формат
-                    String reservedTime = reservedTimeTimestamp.toLocalDateTime()
-                            .format(DateTimeFormatter.ofPattern("HH:mm"));
-                    String endTime = endTimeTimestamp.toLocalDateTime()
-                            .format(DateTimeFormatter.ofPattern("HH:mm"));
-
-                    int userId = resultSet.getInt("user_id");
-
-                    int pc_id = resultSet.getInt("computer_id");
-
-                    // Добавляем преобразованные данные в список
-                    reservedTimes.add(new ReservedTime(reservedTime, endTime, String.valueOf(userId), String.valueOf(pc_id)));
-                }
-
+                // Установка данных в таблицу
                 reservedTimesTable.setItems(reservedTimes);
 
             } catch (SQLException e) {
@@ -159,8 +144,38 @@ public class ReserveModalController {
         }
     }
 
+    /*============ПОМОЩНИК ДЛЯ ЗАГРУЗКИ ДАННЫХ ИЗ ТАБЛИЦЫ===========*/
+    private void loadDataFromTable(Connection conn, String query, LocalDate selectedDate, ObservableList<ReservedTime> reservedTimes, String table_name) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, selectedComputer.getId());
+            stmt.setString(2, selectedDate + "%");
 
-    // Обработчик для кнопки "Зарезервировать"
+            ResultSet resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                String reservedTime;
+                if ("reserv".equals(table_name)) {
+                    reservedTime = resultSet.getTimestamp("reservation_time").toLocalDateTime()
+                            .format(DateTimeFormatter.ofPattern("HH:mm"));
+                } else if ("order".equals(table_name)) {
+                    reservedTime = resultSet.getTimestamp("start_time").toLocalDateTime()
+                            .format(DateTimeFormatter.ofPattern("HH:mm"));
+                } else {
+                    throw new IllegalArgumentException("Unsupported table name: " + table_name);
+                }
+
+                String endTime = resultSet.getTimestamp("end_time").toLocalDateTime()
+                        .format(DateTimeFormatter.ofPattern("HH:mm"));
+                int userId = resultSet.getInt("user_id");
+                int pcId = resultSet.getInt("computer_id");
+
+                reservedTimes.add(new ReservedTime(reservedTime, endTime, String.valueOf(userId), String.valueOf(pcId)));
+            }
+
+        }
+    }
+
+
+    /*============ОБРАБОТЧИК КНОПКИ "ЗАРЕЗЕРВИРОВАТЬ"===========*/
     public void handleReserve() {
         LocalDate selectedDate = reservationDatePicker.getValue();
         String startTimeText = startTimeComboBox.getValue();
@@ -181,18 +196,16 @@ public class ReserveModalController {
                 return;
             }
 
-            // Преобразование в формат DATETIME для базы данных
             String reservationTime = selectedDate.atTime(startTime).toString();
             String endTimeStr = selectedDate.atTime(endTime).toString();
 
-            // Проверка, существует ли уже резервация на это время
             String checkQuery = "SELECT COUNT(*) FROM Reservations WHERE computer_id = ? AND reservation_time < ? AND end_time > ?";
             try (Connection conn = databaseConnection.connect();
                  PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
 
                 checkStmt.setInt(1, selectedComputer.getId());
-                checkStmt.setString(2, endTimeStr);  // Проверка, что время окончания нового резервации позже, чем время начала существующей
-                checkStmt.setString(3, reservationTime);  // Проверка, что время начала нового резервации раньше, чем время окончания существующей
+                checkStmt.setString(2, endTimeStr);
+                checkStmt.setString(3, reservationTime);
 
                 ResultSet resultSet = checkStmt.executeQuery();
                 if (resultSet.next() && resultSet.getInt(1) > 0) {
@@ -201,7 +214,6 @@ public class ReserveModalController {
                 }
             }
 
-            // Вставка данных о резервации в базу данных
             String query = "INSERT INTO Reservations (computer_id, user_id, reservation_time, end_time) VALUES (?, ?, ?, ?)";
             try (Connection conn = databaseConnection.connect();
                  PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -214,7 +226,7 @@ public class ReserveModalController {
                 int rowsAffected = stmt.executeUpdate();
                 if (rowsAffected > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Успех", "Резервация выполнена.");
-                    loadReservedTimes(); // Обновить таблицу занятых временных интервалов
+                    loadReservedTimes();
                 }
             }
         } catch (Exception e) {
@@ -222,8 +234,7 @@ public class ReserveModalController {
         }
     }
 
-
-    // Показать алерт
+    /*============ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПОКАЗА АЛЕРТОВ===========*/
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
