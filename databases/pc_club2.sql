@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Дек 01 2024 г., 01:58
+-- Время создания: Дек 01 2024 г., 20:50
 -- Версия сервера: 10.4.32-MariaDB-log
 -- Версия PHP: 8.2.12
 
@@ -111,7 +111,8 @@ INSERT INTO `games` (`game_id`, `game_name`, `description`, `genre_id`) VALUES
 (26, 'FIFA 22', 'A sports simulation game that focuses on football, featuring realistic graphics and gameplay mechanics.', 4),
 (27, 'NBA 2K21', 'A basketball simulation game that allows players to control teams and play in real-world arenas.', 4),
 (28, 'Rocket League', 'A combination of soccer and vehicular acrobatics, where players use rocket-powered cars to hit a ball into the goal.', 1),
-(29, 'Overwatch', 'A team-based first-person shooter featuring a diverse cast of characters, each with unique abilities.', 1);
+(29, 'Overwatch', 'A team-based first-person shooter featuring a diverse cast of characters, each with unique abilities.', 1),
+(30, 'Goat Simulator 3', 'Компьютерная игра в жанре action. Игра разрабатывалась студией Coffee Stain North. Является сиквелом Goat Simulator, была анонсирована на Summer Game Fest и вышла 17 ноября 2022 года.', 1);
 
 -- --------------------------------------------------------
 
@@ -173,6 +174,13 @@ CREATE TABLE `orders` (
   `total_cost` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Дамп данных таблицы `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `computer_id`, `start_time`, `end_time`, `total_cost`) VALUES
+(5, 2, 2, '2024-12-02 00:00:00', '2024-12-02 05:00:00', 500.00);
+
 -- --------------------------------------------------------
 
 --
@@ -193,9 +201,8 @@ CREATE TABLE `reservations` (
 --
 
 INSERT INTO `reservations` (`reservation_id`, `user_id`, `computer_id`, `reservation_time`, `end_time`, `is_active`) VALUES
-(4, 1, 2, '2024-12-01 02:00:00', '2024-12-01 03:00:00', 1),
 (5, 1, 2, '2024-12-01 03:00:00', '2024-12-01 04:00:00', 1),
-(9, 2, 2, '2024-12-01 06:00:00', '2024-12-01 08:00:00', 1);
+(13, 2, 2, '2024-12-02 05:00:00', '2024-12-02 06:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -289,7 +296,7 @@ ALTER TABLE `computers`
 -- AUTO_INCREMENT для таблицы `games`
 --
 ALTER TABLE `games`
-  MODIFY `game_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `game_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT для таблицы `gamestages`
@@ -307,13 +314,13 @@ ALTER TABLE `genres`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблицы `reservations`
 --
 ALTER TABLE `reservations`
-  MODIFY `reservation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `reservation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
