@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="900.0" prefWidth="1250.0" stylesheets="@css/mainPage.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tarasov.app.pc.AdminPageController">
-    <TabPane layoutX="65.0" layoutY="41.0" prefHeight="819.0" prefWidth="1120.0">
+    <TabPane layoutX="65.0" layoutY="41.0" prefHeight="754.0" prefWidth="1120.0">
         <!-- Таблица для отображения игр -->
         <Tab closable="false" text="Игры">
-            <TableView fx:id="gamesTable">
-                <columns>
-                    <TableColumn fx:id="gameIdColumn" text="ID" />
-                    <TableColumn fx:id="gameNameColumn" text="Название" />
-                    <TableColumn fx:id="gameDescriptionColumn" text="Описание" />
-                    <TableColumn fx:id="gameGenreColumn" text="Жанр" />
-                </columns>
-            </TableView>
+            <VBox>
+                <Button fx:id="addGameButton" onAction="#handleAddGame" prefHeight="68.0" prefWidth="1120.0" text="Добавить игру">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font></Button>
+                <TableView fx:id="gamesTable" prefHeight="709.0" prefWidth="1120.0">
+                    <columns>
+                        <TableColumn fx:id="gameIdColumn" text="ID" />
+                        <TableColumn fx:id="gameNameColumn" text="Название" />
+                        <TableColumn fx:id="gameDescriptionColumn" text="Описание" />
+                        <TableColumn fx:id="gameGenreColumn" text="Жанр" />
+                    </columns>
+                </TableView>
+            </VBox>
         </Tab>
 
         <!-- Таблица для отображения броней -->

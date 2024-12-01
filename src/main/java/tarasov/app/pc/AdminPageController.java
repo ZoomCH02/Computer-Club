@@ -2,9 +2,15 @@ package tarasov.app.pc;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.sql.*;
 import java.time.format.DateTimeFormatter;
@@ -80,6 +86,7 @@ public class AdminPageController {
         totalCostColumn.setCellValueFactory(new PropertyValueFactory<>("TotalCost"));
 
         setupContextMenuForReservations();
+        setupContextMenuForGames(); // Добавляем настройку контекстного меню для игр
     }
 
     // Метод для инициализации данных в таблицах
@@ -186,6 +193,58 @@ public class AdminPageController {
             return row;
         });
     }
+
+    private void setupContextMenuForGames() {
+        // Создаем контекстное меню
+        ContextMenu contextMenu = new ContextMenu();
+
+        // Создаем пункт меню "Удалить"
+        MenuItem deleteGame = new MenuItem("Удалить");
+
+        // Устанавливаем обработчик события для пункта меню "Удалить"
+        deleteGame.setOnAction(event -> handleDeleteGame());
+
+        // Добавляем пункт меню в контекстное меню
+        contextMenu.getItems().add(deleteGame);
+
+        // Привязываем контекстное меню к строкам таблицы
+        gamesTable.setRowFactory(tv -> {
+            TableRow<Game> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    contextMenu.show(row, event.getScreenX(), event.getScreenY());
+                } else {
+                    contextMenu.hide();
+                }
+            });
+            return row;
+        });
+    }
+
+    private void handleDeleteGame() {
+        Game selectedGame = gamesTable.getSelectionModel().getSelectedItem();
+        if (selectedGame != null) {
+            try (Connection conn = databaseConnection.connect()) {
+                // Удаляем выбранную игру из базы данных
+                String deleteQuery = "DELETE FROM Games WHERE game_id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+                    stmt.setInt(1, selectedGame.getId());
+                    stmt.executeUpdate();
+                }
+
+                // Обновляем таблицу игр
+                loadGames();
+
+                AlertManager.showInfoAlert("Успех", "Игра успешно удалена.");
+            } catch (SQLException e) {
+                AlertManager.showErrorAlert("Ошибка", "Не удалось удалить игру.");
+                e.printStackTrace();
+            }
+        } else {
+            AlertManager.showWarningAlert("Не выбрана игра", "Выберите игру перед удалением.");
+        }
+    }
+
 
     private void handleCancelReservation() {
         ReservedTime selectedReservation = reservationsTable.getSelectionModel().getSelectedItem();
@@ -316,4 +375,26 @@ public class AdminPageController {
         double hours = milliseconds / (1000.0 * 60 * 60);
         return Math.ceil(hours) * 100; // Цена за час: 100 рублей
     }
+
+    @FXML
+    private void handleAddGame() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("AddGameDialog.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Добавить игру");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+
+            // Обновление таблицы игр после добавления
+            loadGames();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Не удалось открыть окно добавления игры.");
+            alert.showAndWait();
+        }
+    }
+
 }
