@@ -90,7 +90,7 @@ public class RegisterController {
 
     // Метод для проверки, существует ли пользователь с таким логином
     private boolean isUsernameTaken(String username) {
-        String query = "SELECT username FROM users WHERE username = ?";
+        String query = "SELECT username FROM Users WHERE username = ?";
         try (Connection conn = databaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);

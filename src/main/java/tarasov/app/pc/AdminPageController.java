@@ -97,7 +97,7 @@ public class AdminPageController {
 
     private void loadGames() {
         ObservableList<Game> games = FXCollections.observableArrayList();
-        String query = "SELECT games.game_id, games.game_name, games.description, genres.id AS genre_id, genres.name AS genre_name " +
+        String query = "SELECT Games.game_id, Games.game_name, Games.description, Genres.id AS genre_id, Genres.name AS genre_name " +
                 "FROM Games " +
                 "JOIN Genres ON Genres.id = Games.genre_id;";
 

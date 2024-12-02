@@ -126,7 +126,7 @@ public class MainPageController {
     }
 
     private void loadSessionInfo() {
-        String query = "SELECT start_time, end_time FROM orders WHERE user_id = ? AND NOW() BETWEEN start_time AND end_time";
+        String query = "SELECT start_time, end_time FROM Orders WHERE user_id = ? AND NOW() BETWEEN start_time AND end_time";
 
         try (Connection conn = databaseConnection.connect(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, user_id); // Устанавливаем ID пользователя
@@ -180,7 +180,7 @@ public class MainPageController {
     }
 
     private void loadGames() {
-        String query = "SELECT games.game_id, games.game_name, games.description, genres.id AS genre_id, genres.name AS genre_name " +
+        String query = "SELECT Games.game_id, Games.game_name, Games.description, Genres.id AS genre_id, Genres.name AS genre_name " +
                 "FROM Games " +
                 "JOIN Genres ON Genres.id = Games.genre_id;";
 

@@ -158,7 +158,7 @@ public class LoginController {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        String query = "SELECT id, role FROM users WHERE username = ? AND password_hash = ?;";
+        String query = "SELECT id, role FROM Users WHERE username = ? AND password_hash = ?;";
 
         try {
             conn = databaseConnection.connect();
