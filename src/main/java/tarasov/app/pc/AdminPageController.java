@@ -301,71 +301,77 @@ public class AdminPageController {
 
     private void handleConfirmReservation() {
         ReservedTime selectedReservation = reservationsTable.getSelectionModel().getSelectedItem();
-        if (selectedReservation != null) {
-            try (Connection conn = databaseConnection.connect()) {
-                // Конвертация данных
-                int userId = Integer.parseInt(selectedReservation.userProperty().get());
-                int computerId = Integer.parseInt(selectedReservation.pcIdProperty().get());
-
-                // Извлечение времени начала и конца бронирования из таблицы Reservations
-                String fetchReservationQuery = "SELECT reservation_time, end_time FROM Reservations WHERE user_id = ? AND computer_id = ?";
-                Timestamp startTime = null;
-                Timestamp endTime = null;
-
-                try (PreparedStatement fetchStmt = conn.prepareStatement(fetchReservationQuery)) {
-                    fetchStmt.setInt(1, userId);
-                    fetchStmt.setInt(2, computerId);
-
-                    try (ResultSet rs = fetchStmt.executeQuery()) {
-                        if (rs.next()) {
-                            startTime = rs.getTimestamp("reservation_time");
-                            endTime = rs.getTimestamp("end_time");
-                        }
-                    }
-                }
-
-                // Проверка на случай отсутствия данных
-                if (startTime == null || endTime == null) {
-                    AlertManager.showErrorAlert("Ошибка", "Не удалось найти данные о бронировании в базе данных.");
-                    return;
-                }
-
-                // Вычисление стоимости
-                double totalCost = calculateCost(startTime, endTime);
-
-                // SQL-запрос для добавления записи в таблицу Orders
-                String insertOrderQuery = "INSERT INTO Orders (user_id, computer_id, start_time, end_time, total_cost) " +
-                        "VALUES (?, ?, ?, ?, ?)";
-
-                try (PreparedStatement stmt = conn.prepareStatement(insertOrderQuery)) {
-                    stmt.setInt(1, userId);
-                    stmt.setInt(2, computerId);
-                    stmt.setTimestamp(3, startTime);
-                    stmt.setTimestamp(4, endTime);
-                    stmt.setDouble(5, totalCost);
-                    stmt.executeUpdate();
-                }
-
-                // Удаление из Reservations после переноса в Orders
-                String deleteReservationQuery = "DELETE FROM Reservations WHERE user_id = ? AND computer_id = ? AND reservation_time = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(deleteReservationQuery)) {
-                    stmt.setInt(1, userId);
-                    stmt.setInt(2, computerId);
-                    stmt.setTimestamp(3, startTime);
-                    stmt.executeUpdate();
-                }
-
-                // Обновление таблиц
-                loadOrders();
-                loadReservations();
-
-                AlertManager.showInfoAlert("Успех", "Бронь подтверждена и добавлена в заказы.");
-            } catch (SQLException e) {
-                AlertManager.showErrorAlert("Ошибка", "Произошла ошибка при подтверждении брони.");
-                e.printStackTrace();
-            }
-        } else {
+        if (selectedReservation == null) {
             AlertManager.showWarningAlert("Не выбрана бронь", "Выберите строку перед выполнением действия.");
+            return;
+        }
+
+        try (Connection conn = databaseConnection.connect()) {
+            int userId = Integer.parseInt(selectedReservation.userProperty().get());
+            int computerId = Integer.parseInt(selectedReservation.pcIdProperty().get());
+
+            // Извлечение данных о бронировании
+            ReservationDetails details = fetchReservationDetails(conn, userId, computerId);
+            if (details == null) {
+                AlertManager.showErrorAlert("Ошибка", "Не удалось найти данные о бронировании.");
+                return;
+            }
+
+            // Расчет стоимости
+            double totalCost = calculateCost(details.getStartTime(), details.getEndTime());
+
+            // Добавление заказа в Orders
+            addOrder(conn, userId, computerId, details.getStartTime(), details.getEndTime(), totalCost);
+
+            // Удаление брони из Reservations
+            deleteReservation(conn, userId, computerId, details.getStartTime());
+
+            // Обновление интерфейса
+            loadReservations();
+            loadOrders();
+            AlertManager.showInfoAlert("Успех", "Бронь успешно подтверждена.");
+        } catch (SQLException e) {
+            AlertManager.showErrorAlert("Ошибка", "Произошла ошибка при подтверждении бронирования.");
+            e.printStackTrace();
+        }
+    }
+
+    private ReservationDetails fetchReservationDetails(Connection conn, int userId, int computerId) throws SQLException {
+        String query = "SELECT reservation_time, end_time FROM Reservations WHERE user_id = ? AND computer_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, computerId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Timestamp startTime = rs.getTimestamp("reservation_time");
+                    Timestamp endTime = rs.getTimestamp("end_time");
+                    return new ReservationDetails(startTime, endTime);
+                }
+            }
+        }
+        return null; // Возвращаем null, если данных нет
+    }
+
+    private void addOrder(Connection conn, int userId, int computerId, Timestamp startTime, Timestamp endTime, double totalCost) throws SQLException {
+        String query = "INSERT INTO Orders (user_id, computer_id, start_time, end_time, total_cost) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, computerId);
+            stmt.setTimestamp(3, startTime);
+            stmt.setTimestamp(4, endTime);
+            stmt.setDouble(5, totalCost);
+            stmt.executeUpdate();
+        }
+    }
+
+    private void deleteReservation(Connection conn, int userId, int computerId, Timestamp startTime) throws SQLException {
+        String query = "DELETE FROM Reservations WHERE user_id = ? AND computer_id = ? AND reservation_time = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, computerId);
+            stmt.setTimestamp(3, startTime);
+            stmt.executeUpdate();
         }
     }
 

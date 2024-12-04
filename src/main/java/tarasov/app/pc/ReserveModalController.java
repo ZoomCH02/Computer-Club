@@ -5,10 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -199,21 +196,6 @@ public class ReserveModalController {
             String reservationTime = selectedDate.atTime(startTime).toString();
             String endTimeStr = selectedDate.atTime(endTime).toString();
 
-            String checkQuery = "SELECT COUNT(*) FROM Reservations WHERE computer_id = ? AND reservation_time < ? AND end_time > ?";
-            try (Connection conn = databaseConnection.connect();
-                 PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
-
-                checkStmt.setInt(1, selectedComputer.getId());
-                checkStmt.setString(2, endTimeStr);
-                checkStmt.setString(3, reservationTime);
-
-                ResultSet resultSet = checkStmt.executeQuery();
-                if (resultSet.next() && resultSet.getInt(1) > 0) {
-                    showAlert(Alert.AlertType.WARNING, "Ошибка", "В это время уже существует резервация.");
-                    return;
-                }
-            }
-
             String query = "INSERT INTO Reservations (computer_id, user_id, reservation_time, end_time) VALUES (?, ?, ?, ?)";
             try (Connection conn = databaseConnection.connect();
                  PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -223,16 +205,17 @@ public class ReserveModalController {
                 stmt.setString(3, reservationTime);
                 stmt.setString(4, endTimeStr);
 
-                int rowsAffected = stmt.executeUpdate();
-                if (rowsAffected > 0) {
-                    showAlert(Alert.AlertType.INFORMATION, "Успех", "Резервация выполнена.");
-                    loadReservedTimes();
-                }
+                stmt.executeUpdate();
+                showAlert(Alert.AlertType.INFORMATION, "Успех", "Резервация выполнена.");
+                loadReservedTimes();
             }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            showAlert(Alert.AlertType.WARNING, "Ошибка", e.getMessage());
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Ошибка", "Ошибка при создании резервации: " + e.getMessage());
         }
     }
+
 
     /*============ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ПОКАЗА АЛЕРТОВ===========*/
     private void showAlert(Alert.AlertType alertType, String title, String message) {
